@@ -1,11 +1,16 @@
 #include "classes.hpp"
 
 Sensors::TurbiditySensor turbidity(A0, 405, 650);
+Communication::WiFiManager wifi;
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
 
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  if (wifi.begin("Infinix HOT 11 Play", "puyengey")) {
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
 }
 
 void loop() {
