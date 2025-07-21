@@ -1,87 +1,135 @@
+// Header guard
 #pragma once
 
-#include <ESP8266WiFi.h>
-#include <functional>
-#include "helper.hpp"
+// Include library yang digunakan
+#include <ESP8266WiFi.h> // Library WiFi
+#include <functional>    // Library C++ (digunakan pada class Timer)
+#include "helper.hpp"    // Library buatan sendiri
 
+/**
+ * Kelas TurbiditySensor digunakan untuk membaca dan mengonversi data dari Turbidity Sensor.
+ */
 class TurbiditySensor {
     public:
-        TurbiditySensor(uint8_t analogPin, uint16_t rawMin, uint16_t rawMax, uint8_t ADCRes, float vRef)
+        /**
+         * Konstruktor untuk inisialisasi sensor turbiditas.
+         * 
+         * @param analogPin Pin analog yang terhubung ke sensor.
+         * @param rawMin Nilai ADC minimum dari sensor (air keruh).
+         * @param rawMax Nilai ADC maksimum dari sensor (air bersih).
+         * @param ADCRes Resolusi ADC, default = 10 bit.
+         * @param vRef Tegangan referensi untuk konversi tegangan, default = 5.0V.
+         */
+        TurbiditySensor(uint8_t analogPin, uint16_t rawMin, uint16_t rawMax, uint8_t ADCRes = 10, float vRef = 5.0)
         :  _pin(analogPin), _rawMin(rawMin), _rawMax(rawMax), _rawADC(0), _ADCRes(ADCRes), _vRef(vRef), _rawVoltage(0) {
             _maxADC = pow(2, _ADCRes) - 1;
         }
 
+        /**
+         * Mengambil nilai mentah dari ADC.
+         * 
+         * @return Nilai ADC mentah (0 - nilai maksimum ADC).
+         */
         uint16_t getRawADC() {
             return _rawADC;
         }
 
+        /**
+         * Mengambil nilai tegangan hasil konversi dari ADC.
+         * 
+         * Tegangan dihitung berdasarkan rasio nilai ADC terhadap maksimum ADC,
+         * dikalikan dengan tegangan referensi (vRef).
+         * 
+         * @return Nilai tegangan dalam volt (V).
+         */
         float getVoltage() {
             return _rawVoltage;
         }
 
         /**
-        * Mengambil nilai turbiditas air dalam bentuk skala.
-        * 
-        * Nilai dihitung dari hasil pembacaan ADC (_rawADC) dengan 
-        * memetakan nilai tersebut dari rentang [_rawMin, _rawMax] 
-        * ke rentang 5-1, di mana 5 berarti keruh dan 1 sangat bersih.
-        * 
-        * @return Nilai turbiditas dalam skala 5-1.
-        */
+         * Mengambil nilai turbiditas air dalam bentuk skala.
+         * 
+         * Nilai dihitung dari hasil pembacaan ADC (_rawADC) dengan 
+         * memetakan nilai tersebut dari rentang [_rawMin, _rawMax] 
+         * ke rentang 5–1, di mana 5 berarti keruh dan 1 sangat bersih.
+         * 
+         * @return Nilai turbiditas dalam skala 5–1.
+         */
         uint8_t getLevel() {
             return mapClampedInput<uint16_t, uint8_t>(_rawADC, _rawMin, _rawMax, 5, 1);
         }
 
         /**
-        * Mengambil nilai turbiditas air dalam bentuk persentase.
-        * 
-        * Nilai dihitung dari hasil pembacaan ADC (_rawADC) dengan 
-        * memetakan nilai tersebut dari rentang [_rawMin, _rawMax] 
-        * ke rentang 100–0%, di mana 100% berarti keruh dan 0% sangat bersih.
-        * 
-        * @return Nilai turbiditas dalam persentase (%).
-        */
+         * Mengambil nilai turbiditas air dalam bentuk persentase.
+         * 
+         * Nilai dihitung dari hasil pembacaan ADC (_rawADC) dengan 
+         * memetakan nilai tersebut dari rentang [_rawMin, _rawMax] 
+         * ke rentang 100–0%, di mana 100% berarti keruh dan 0% sangat bersih.
+         * 
+         * @return Nilai turbiditas dalam persentase (%).
+         */
         float getPercentage() {
             return mapClampedInput<uint16_t, float>(_rawADC, _rawMin, _rawMax, 100, 0);
         }
 
         /**
-        * Mengambil nilai turbiditas air dalam satuan NTU (mg/L).
-        * 
-        * Nilai dihitung berdasarkan tegangan analog (_rawVoltage) menggunakan
-        * persamaan regresi kuadratik dari sensor DFRobot Turbidity (SKU: SEN0189).
-        * Persamaan ini diperoleh dari dokumentasi resmi DFRobot:
-        * https://wiki.dfrobot.com/Turbidity_sensor_SKU__SEN0189
-        * 
-        * @return Nilai turbiditas dalam satuan NTU (Nephelometric Turbidity Unit).
-        */
+         * Mengambil nilai turbiditas air dalam satuan NTU (mg/L) (EKSPERIMENTAL).
+         * 
+         * Nilai dihitung berdasarkan tegangan analog (_rawVoltage) menggunakan
+         * persamaan regresi kuadratik dari sensor DFRobot Turbidity (SKU: SEN0189).
+         * Persamaan ini diperoleh dari dokumentasi resmi DFRobot:
+         * https://wiki.dfrobot.com/Turbidity_sensor_SKU__SEN0189
+         * 
+         * @return Nilai turbiditas dalam satuan NTU (Nephelometric Turbidity Unit).
+         */
         float getNTU() {
             return -1120.42 * (_rawVoltage * _rawVoltage) 
                     + 5742.3*(_rawVoltage) 
                     - 4352.9;
         }
 
+        /**
+         * Memperbarui nilai ADC dan tegangan dari sensor.
+         * 
+         * Fungsi ini perlu dipanggil secara berkala untuk memastikan nilai diupdate.
+         */
         void update() {
             _rawADC = analogRead(_pin);
             _rawVoltage = _rawADC / _maxADC * _vRef;
         }
 
     private:
-        uint8_t _pin;
-        uint16_t _rawADC;
-        uint16_t _rawMin;
-        uint16_t _rawMax;
-        float _rawVoltage;
+        uint8_t _pin;      // Pin analog yang digunakan.
+        uint16_t _rawADC;  // Nilai mentah ADC.
+        uint16_t _rawMin;  // Nilai ADC minimum dari sensor.
+        uint16_t _rawMax;  // Nilai ADC maksimum dari sensor.
+        float _rawVoltage; // Nilai tegangan mentah.
 
-        uint8_t _ADCRes;
-        double _maxADC;
-        float _vRef;
+        uint8_t _ADCRes;   // Resolusi ADC.
+        double _maxADC;    // Nilai ADC maksimum.
+        float _vRef;       // Tegangan referensi
 };
 
+/**
+ * Kelas WiFiManager digunakan untuk mengelola koneksi WiFi.
+ */
 class WiFiManager {
     public:
+        /**
+         * Konstruktor untuk inisialisasi WiFi (default constructor).
+         */
         WiFiManager() = default;
 
+        /**
+         * Memulai koneksi WiFi dengan SSID dan password yang diberikan.
+         * 
+         * Fungsi akan mencoba menyambungkan perangkat ke jaringan WiFi hingga
+         * maksimal 5 kali percobaan, masing-masing dengan jeda 500 ms.
+         * 
+         * @param ssid Nama SSID WiFi.
+         * @param password Password WiFi.
+         * @return True jika berhasil terhubung, false jika gagal.
+         */
         bool begin(const char* ssid, const char* password) {
             const uint8_t maxRetries = 5;
             const uint16_t retryDelayMs = 500;
@@ -100,21 +148,50 @@ class WiFiManager {
         }
 };
 
+/**
+ * Kelas BlynkManager digunakan sebagai placeholder untuk manajemen Blynk.
+ */
 class BlynkManager {
     public:
+        /**
+         * Konstruktor untuk inisialisasi Blynk (default constructor).
+         */
         BlynkManager() = default;
 
+        /**
+         * Memulai koneksi dengan Blynk (sementara hanya mengembalikan true) (NOT IMPLEMENTED YET).
+         * 
+         * Fungsi ini dapat diperluas untuk mengatur autentikasi dan koneksi Blynk.
+         * 
+         * @return True (default, koneksi sukses).
+         */
         bool begin() {
             return true;
         }
 };
 
+/**
+ * Kelas Timer digunakan untuk menjalankan fungsi callback secara periodik
+ * tanpa menggunakan delay blocking.
+ */
 class Timer {
 
     public:
+        /**
+         * Konstruktor Timer.
+         * 
+         * @param interval Interval waktu antar callback dalam milidetik.
+         * @param callback Fungsi yang akan dipanggil setiap interval.
+         */
         Timer(unsigned long interval, std::function<void()> callback)
         : _interval(interval), _callback(callback), _prevMillis(0) {}
 
+        /**
+         * Memeriksa apakah waktu interval telah tercapai, dan jika ya,
+         * akan memanggil fungsi callback yang telah ditentukan.
+         * 
+         * Fungsi ini harus dipanggil secara berkala.
+         */
         void update() {
             unsigned long currentMillis = millis();
             if (currentMillis - _prevMillis >= _interval) {
@@ -123,17 +200,26 @@ class Timer {
             }
         }
 
+        /**
+         * Mengatur ulang interval waktu baru untuk timer.
+         * 
+         * @param newInterval Nilai interval baru dalam milidetik.
+         */
         void setInterval(unsigned long newInterval) {
             _interval = newInterval;
         }
 
+        /**
+         * Mereset waktu acuan timer ke waktu saat ini.
+         * 
+         * Dapat digunakan untuk memulai ulang perhitungan interval.
+         */
         void reset() {
             _prevMillis = millis();
         }
 
     private:
-        unsigned long _interval;
-        unsigned long _prevMillis;
-        std::function<void()> _callback;
+        unsigned long _interval;         // Interval pemanggilan callback.
+        unsigned long _prevMillis;       // Waktu pemanggilan callback sebelumnya.
+        std::function<void()> _callback; // Callback void function/method/lambda.
 };
-

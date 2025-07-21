@@ -1,16 +1,60 @@
 #pragma once
 
+/**
+ * Mengembalikan nilai yang telah dibatasi dalam rentang tertentu.
+ * 
+ * Fungsi ini membatasi nilai `x` agar tidak lebih kecil dari `lowerBound`
+ * dan tidak lebih besar dari `upperBound`.
+ * 
+ * @tparam T Tipe data numerik (int, float, dll.).
+ * @param x Nilai yang akan diperiksa.
+ * @param lowerBound Batas bawah yang diperbolehkan.
+ * @param upperBound Batas atas yang diperbolehkan.
+ * @return Nilai x yang telah dikunci dalam rentang [lowerBound, upperBound].
+ */
 template <typename T>
 T constrainValue(T x, T lowerBound, T upperBound) {
     return (x < lowerBound) ? lowerBound : (x > upperBound) ? upperBound : x;
 }
 
+/**
+ * Memetakan nilai dari satu rentang ke rentang lain.
+ * 
+ * Fungsi ini mengubah nilai `x` dari rentang asal [fromLow, fromHigh]
+ * ke rentang tujuan [toLow, toHigh] secara proporsional.
+ * 
+ * Jika fromHigh == fromLow, maka nilai toLow akan dikembalikan untuk mencegah pembagian dengan nol.
+ * 
+ * @tparam InputType Tipe data input (biasanya int atau float).
+ * @tparam OutputType Tipe data output yang diinginkan.
+ * @param x Nilai yang akan dipetakan.
+ * @param fromLow Batas bawah rentang asal.
+ * @param fromHigh Batas atas rentang asal.
+ * @param toLow Batas bawah rentang tujuan.
+ * @param toHigh Batas atas rentang tujuan.
+ * @return Nilai hasil pemetaan dalam rentang tujuan.
+ */
 template <typename InputType, typename OutputType>
 OutputType mapValue(InputType x, InputType fromLow, InputType fromHigh, InputType toLow, InputType toHigh) {
     if (fromHigh == fromLow) return static_cast<OutputType>(toLow);
     return static_cast<OutputType>((x - fromLow) * ((toHigh - toLow) / static_cast<double>(fromHigh - fromLow)) + toLow);
 }
 
+/**
+ * Memetakan nilai dari satu rentang ke rentang lain dengan input terkunci (clamped).
+ * 
+ * Nilai `x` terlebih dahulu dibatasi (clamp) ke dalam rentang asal [fromLow, fromHigh],
+ * kemudian dipetakan ke rentang tujuan [toLow, toHigh] menggunakan pemetaan linear.
+ * 
+ * @tparam InputType Tipe data input (biasanya int atau float).
+ * @tparam OutputType Tipe data output yang diinginkan.
+ * @param x Nilai yang akan dipetakan.
+ * @param fromLow Batas bawah rentang asal.
+ * @param fromHigh Batas atas rentang asal.
+ * @param toLow Batas bawah rentang tujuan.
+ * @param toHigh Batas atas rentang tujuan.
+ * @return Nilai hasil pemetaan dalam rentang tujuan, setelah dikunci di rentang asal.
+ */
 template <typename InputType, typename OutputType>
 OutputType mapClampedInput(InputType x, InputType fromLow, InputType fromHigh, InputType toLow, InputType toHigh) {
     auto clampedVal = constrainValue(x, fromLow, fromHigh);
