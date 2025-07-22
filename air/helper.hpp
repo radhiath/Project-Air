@@ -1,4 +1,34 @@
+// Header guard
 #pragma once
+
+// Ubah nilai MODE ke 1 untuk mengaktifkan mode debug (Serial.print aktif)
+// MODE = 0 → mode final (tanpa output Serial)
+// MODE = 1 → mode debug (output Serial aktif)
+#define MODE 0
+
+#if !MODE
+#define FINAL_MODE   // Mode final aktif
+#else
+#define DEBUG_MODE   // Mode debug aktif
+#endif
+
+// ====================
+// Macro Debug
+// ====================
+// Jika DEBUG_MODE aktif:
+//   - Macro akan aktif untuk debugging lewat Serial
+// Jika FINAL_MODE aktif:
+//   - Macro tidak menghasilkan apa pun (tidak menambah ukuran program)
+
+#ifdef DEBUG_MODE
+#define DEBUG_BEGIN(baud)       Serial.begin(baud)
+#define DEBUG_PRINT(...)        Serial.print(__VA_ARGS__)
+#define DEBUG_PRINTLN(...)      Serial.println(__VA_ARGS__)
+#else
+#define DEBUG_BEGIN(baud)
+#define DEBUG_PRINT(...)
+#define DEBUG_PRINTLN(...)
+#endif
 
 /**
  * Mengembalikan nilai yang telah dibatasi dalam rentang tertentu.

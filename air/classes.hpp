@@ -149,28 +149,6 @@ class WiFiManager {
 };
 
 /**
- * Kelas BlynkManager digunakan sebagai placeholder untuk manajemen Blynk.
- */
-class BlynkManager {
-    public:
-        /**
-         * Konstruktor untuk inisialisasi Blynk (default constructor).
-         */
-        BlynkManager() = default;
-
-        /**
-         * Memulai koneksi dengan Blynk (sementara hanya mengembalikan true) (NOT IMPLEMENTED YET).
-         * 
-         * Fungsi ini dapat diperluas untuk mengatur autentikasi dan koneksi Blynk.
-         * 
-         * @return True (default, koneksi sukses).
-         */
-        bool begin() {
-            return true;
-        }
-};
-
-/**
  * Kelas Timer digunakan untuk menjalankan fungsi callback secara periodik
  * tanpa menggunakan delay blocking.
  */
