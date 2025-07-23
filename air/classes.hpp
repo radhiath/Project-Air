@@ -89,6 +89,28 @@ class TurbiditySensor {
         }
 
         /**
+        * Mengambil deskripsi kondisi air dalam bentuk string.
+        * 
+        * Deskripsi ini ditentukan berdasarkan level turbiditas air (1–5)
+        * yang diperoleh dari hasil pemetaan nilai ADC. Nilai level 1 menunjukkan
+        * air sangat bersih, sedangkan level 5 menunjukkan air sangat keruh.
+        * 
+        * @return Pointer ke string literal yang merepresentasikan kondisi air.
+        */
+        const char* getCondition() {
+            uint8_t level = getLevel();
+
+            switch (level) {
+                case 1: return "Sangat Bersih";
+                case 2: return "Bersih";
+                case 3: return "Agak Keruh";
+                case 4: return "Keruh";
+                case 5: return "Sangat Keruh";
+                default: return "Tidak Diketahui"; // In case muncul unwanted behavior
+            }
+        }
+
+        /**
          * Memperbarui nilai ADC dan tegangan dari sensor.
          * 
          * Fungsi ini perlu dipanggil secara berkala untuk memastikan nilai diupdate.
