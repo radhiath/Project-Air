@@ -51,26 +51,26 @@ class TurbiditySensor {
          * 
          * Nilai dihitung dari hasil pembacaan ADC (_rawADC) dengan 
          * memetakan nilai tersebut dari rentang [_rawMin, _rawMax] 
-         * ke rentang 5–1, di mana 5 berarti keruh dan 1 sangat bersih.
+         * ke rentang 1-5, di mana 1 berarti keruh dan 5 sangat bersih.
          * 
-         * @return Nilai turbiditas dalam skala 5–1.
+         * @return Nilai turbiditas dalam skala 1-5.
          */
-uint8_t getLevel() {
-    if (_rawADC < 650 && _rawADC > 640) {
-        return 1;
-    } else if (_rawADC < 639 && _rawADC > 620) {
-        return 2;
-    } else if (_rawADC < 619 && _rawADC > 600) {
-        return 3;
-    } else if (_rawADC < 599 && _rawADC > 460) {
-        return 4;
-    } else if (_rawADC < 459 && _rawADC > 450) {
-        return 5;
-    }
-    return 0; // fallback, atau bisa gunakan nilai 6 untuk "tidak diketahui"
-}
+        uint8_t getLevel() {
+            if (_rawADC >= 641 && _rawADC <= 650) {
+                return 1; // Sangat bersih
+            } else if (_rawADC >= 621 && _rawADC <= 640) {
+                return 2;
+            } else if (_rawADC >= 601 && _rawADC <= 620) {
+                return 3;
+            } else if (_rawADC >= 461 && _rawADC <= 600) {
+                return 4;
+            } else if (_rawADC >= 447 && _rawADC <= 460) {
+                return 5; // Sangat keruh
+            }
+            return 0; // Di luar range
+        }
 
-
+        // DEPRECATED
         /**
          * Mengambil nilai turbiditas air dalam bentuk persentase.
          * 
@@ -80,19 +80,11 @@ uint8_t getLevel() {
          * 
          * @return Nilai turbiditas dalam persentase (%).
          */
-float getPercentage() {
-    // Clamp _rawADC di antara _rawMin dan _rawMax
-    uint16_t clamped = _rawADC;
-    if (clamped < _rawMin) clamped = _rawMin;
-    if (clamped > _rawMax) clamped = _rawMax;
+        // float getPercentage() {
+        //     return mapClampedInput<uint16_t, float>(_rawADC, _rawMin, _rawMax, 0, 100);
+        // }
 
-    // Skala 0% (keruh) di rawMin ke 100% (bersih) di rawMax
-    float percentage = ((float)(clamped - _rawMin) / (_rawMax - _rawMin)) * 100.0;
-    return percentage;
-}
-
-
-
+        // DEPRECATED
         /**
          * Mengambil nilai turbiditas air dalam satuan NTU (mg/L) (EKSPERIMENTAL).
          * 
@@ -103,11 +95,11 @@ float getPercentage() {
          * 
          * @return Nilai turbiditas dalam satuan NTU (Nephelometric Turbidity Unit).
          */
-        float getNTU() {
-            return -1120.42 * (_rawVoltage * _rawVoltage) 
-                    + 5742.3*(_rawVoltage) 
-                    - 4352.9;
-        }
+        // float getNTU() {
+        //     return -1120.42 * (_rawVoltage * _rawVoltage) 
+        //             + 5742.3*(_rawVoltage) 
+        //             - 4352.9;
+        // }
 
         /**
         * Mengambil deskripsi kondisi air dalam bentuk string.
@@ -122,11 +114,11 @@ float getPercentage() {
             uint8_t level = getLevel();
 
             switch (level) {
-                case 5: return "Sangat Bersih"; // 650-640
-                case 4: return "Bersih"; // 639 - 620
-                case 3: return "Agak Keruh"; // 619 - 600
-                case 2: return "Keruh"; // 599 - 460
-                case 1: return "Sangat Keruh"; // 459 - 450
+                case 1: return "Sangat Keruh";
+                case 2: return "Keruh";
+                case 3: return "Agak Keruh";
+                case 4: return "Bersih";
+                case 5: return "Sangat Bersih";
                 default: return "Tidak Diketahui"; // In case muncul unwanted behavior
             }
         }
