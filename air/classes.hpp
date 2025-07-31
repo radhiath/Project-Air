@@ -57,15 +57,15 @@ class TurbiditySensor {
          */
         uint8_t getLevel() {
             if (_rawADC >= 641 && _rawADC <= 650) {
-                return 1; // Sangat bersih
+                return 5; // Sangat bersih
             } else if (_rawADC >= 621 && _rawADC <= 640) {
-                return 2;
+                return 4;
             } else if (_rawADC >= 601 && _rawADC <= 620) {
                 return 3;
             } else if (_rawADC >= 461 && _rawADC <= 600) {
-                return 4;
-            } else if (_rawADC >= 447 && _rawADC <= 460) {
-                return 5; // Sangat keruh
+                return 2;
+            } else if (_rawADC >= 0 && _rawADC <= 460) {
+                return 1; // Sangat keruh
             }
             return 0; // Di luar range
         }
