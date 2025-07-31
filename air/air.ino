@@ -1,11 +1,15 @@
+#define BLYNK_TEMPLATE_ID "TMPL6qPF8e0WF"
+#define BLYNK_TEMPLATE_NAME "Kualitas Air"
+#define BLYNK_AUTH_TOKEN "3mP9E_FtjuPRmS2DWdpb6Z89Q1pBGfK-"
+
 // Include custom classes
 #include "classes.hpp"
 #include "helper.hpp"
-#include "secrets.hpp"
 
 #include <BlynkSimpleEsp8266.h>
-
-uint8_t cleanest = 649; // Rata-rata 649.2
+const char* ssid = "Infinix HOT 11 Play";
+const char* pass = "puyengey";
+uint8_t cleanest = 650; // Rata-rata 649.2
 uint8_t dirtiest = 447; // Rata-rata 447.2
 
 // Instatiate objek TurbiditySensor dengan nama turbidity
@@ -54,10 +58,7 @@ void printData() {
   DEBUG_PRINT("Kondisi air: "); DEBUG_PRINT(turbidity.getCondition());     DEBUG_PRINTLN("\n");
 
   // Kirim ke Blynk (misalnya ke Virtual Pin V0)
-  Blynk.virtualWrite(V0, turbidity.getRawADC());
-  Blynk.virtualWrite(V1, turbidity.getVoltage());
-  Blynk.virtualWrite(V2, turbidity.getLevel());
-  Blynk.virtualWrite(V3, turbidity.getPercentage());
-  Blynk.virtualWrite(V4, turbidity.getCondition());
-  Blynk.virtualWrite(V5, 255);
+  Blynk.virtualWrite(V0, turbidity.getLevel());
+  Blynk.virtualWrite(V1, turbidity.getPercentage());
+  Blynk.virtualWrite(V2, turbidity.getCondition());
 }

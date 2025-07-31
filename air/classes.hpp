@@ -55,9 +55,21 @@ class TurbiditySensor {
          * 
          * @return Nilai turbiditas dalam skala 5–1.
          */
-        uint8_t getLevel() {
-            return mapClampedInput<uint16_t, uint8_t>(_rawADC, _rawMin, _rawMax, 5, 1);
-        }
+uint8_t getLevel() {
+    if (_rawADC < 650 && _rawADC > 640) {
+        return 1;
+    } else if (_rawADC < 639 && _rawADC > 620) {
+        return 2;
+    } else if (_rawADC < 619 && _rawADC > 600) {
+        return 3;
+    } else if (_rawADC < 599 && _rawADC > 460) {
+        return 4;
+    } else if (_rawADC < 459 && _rawADC > 450) {
+        return 5;
+    }
+    return 0; // fallback, atau bisa gunakan nilai 6 untuk "tidak diketahui"
+}
+
 
         /**
          * Mengambil nilai turbiditas air dalam bentuk persentase.
@@ -68,9 +80,18 @@ class TurbiditySensor {
          * 
          * @return Nilai turbiditas dalam persentase (%).
          */
-        float getPercentage() {
-            return mapClampedInput<uint16_t, float>(_rawADC, _rawMin, _rawMax, 100, 0);
-        }
+float getPercentage() {
+    // Clamp _rawADC di antara _rawMin dan _rawMax
+    uint16_t clamped = _rawADC;
+    if (clamped < _rawMin) clamped = _rawMin;
+    if (clamped > _rawMax) clamped = _rawMax;
+
+    // Skala 0% (keruh) di rawMin ke 100% (bersih) di rawMax
+    float percentage = ((float)(clamped - _rawMin) / (_rawMax - _rawMin)) * 100.0;
+    return percentage;
+}
+
+
 
         /**
          * Mengambil nilai turbiditas air dalam satuan NTU (mg/L) (EKSPERIMENTAL).
@@ -101,11 +122,11 @@ class TurbiditySensor {
             uint8_t level = getLevel();
 
             switch (level) {
-                case 1: return "Sangat Bersih";
-                case 2: return "Bersih";
-                case 3: return "Agak Keruh";
-                case 4: return "Keruh";
-                case 5: return "Sangat Keruh";
+                case 5: return "Sangat Bersih"; // 650-640
+                case 4: return "Bersih"; // 639 - 620
+                case 3: return "Agak Keruh"; // 619 - 600
+                case 2: return "Keruh"; // 599 - 460
+                case 1: return "Sangat Keruh"; // 459 - 450
                 default: return "Tidak Diketahui"; // In case muncul unwanted behavior
             }
         }
