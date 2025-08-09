@@ -100,6 +100,20 @@ class TurbiditySensor {
         //             + 5742.3*(_rawVoltage) 
         //             - 4352.9;
         // }
+        
+        /**
+         * Mengambil nilai turbiditas air dalam satuan NTU (mg/L) (EKSPERIMENTAL).
+         * 
+         * Nilai dihitung berdasarkan tegangan analog (_rawVoltage) menggunakan
+         * persamaan regresi kuadratik dari Google Sheets
+         * 
+         * @return Nilai turbiditas dalam satuan NTU (Nephelometric Turbidity Unit).
+         */
+        float getNTU() {
+            return -374.5 * (_rawVoltage * _rawVoltage) 
+                    -270.5 * (_rawVoltage) 
+                    + 4600.1;
+        }
 
         /**
         * Mengambil deskripsi kondisi air dalam bentuk string.

@@ -1,10 +1,17 @@
 // Header guard
 #pragma once
 
+#include <ArduinoJson.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClientSecure.h>
+
+#include "secrets.hpp"
+
 // Ubah nilai MODE ke 1 untuk mengaktifkan mode debug (Serial.print aktif)
 // MODE = 0 → mode final (tanpa output Serial)
 // MODE = 1 → mode debug (output Serial aktif)
-#define MODE 0
+#define MODE 1
 
 #if !MODE
 #define FINAL_MODE   // Mode final aktif
@@ -93,3 +100,34 @@
 //     auto clampedVal = constrainValue(x, fromLow, fromHigh);
 //     return mapValue<InputType, OutputType>(clampedVal, fromLow, fromHigh, toLow, toHigh);
 // }
+
+String createJsonPayload(String time, uint16_t score, uint8_t level, float ntu, String condition) {
+    StaticJsonDocument<300> doc;
+    doc["time"] = time;
+    doc["score"] = score;
+    doc["level"] = level;
+    doc["condition"] = condition;
+    doc["ntu"] = ntu;
+
+    String jsonStr;
+    serializeJson(doc, jsonStr);
+
+    DEBUG_PRINTLN("[DEBUG] JSON Payload dibuat");
+    return jsonStr;
+}
+
+int sendDataToServer(const String &jsonPayload) {
+    if (WiFi.status() == WL_CONNECTED) {
+        WiFiClientSecure client;
+        client.setInsecure();  // Bypass sertifikat SSL
+
+        HTTPClient http;
+        http.begin(client, serverName);
+        http.addHeader("Content-Type", "application/json");
+
+        int httpResponseCode = http.POST(jsonPayload);
+        http.end();
+        return httpResponseCode;
+    }
+    return -1; // Kalau koneksi Wi-Fi gagal
+}
